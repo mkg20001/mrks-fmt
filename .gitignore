@@ -4,6 +4,7 @@
 credentials.json
 token.json
 posts.json
+posts/**
 
 # node
 

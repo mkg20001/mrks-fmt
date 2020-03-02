@@ -11,6 +11,17 @@ const MRKS_LOG = "1uo11f5AARy5bIthEGgwIlaVfkB6mSxrlj-S1A9DrHNA"
 
 const dimensionalScissors = require('./scissors')
 
+function getContent (paragraphs) {
+  return paragraphs
+    .filter(m => m.paragraph && m.paragraph.elements)
+    .reduce((res, m) =>
+      res + m.paragraph.elements
+        .filter(el => el.textRun && el.textRun.content)
+        .reduce((res, el) => res + el.textRun.content, '')
+    , '')
+    .replace(/\u000b/g, '\n')
+}
+
 async function printDocTitle(auth) {
   const docs = google.docs({version: 'v1', auth})
 
@@ -34,14 +45,7 @@ async function printDocTitle(auth) {
 
   let posts = []
 
-  let chars = paragraphs
-    .filter(m => m.paragraph && m.paragraph.elements)
-    .reduce((res, m) =>
-      res + m.paragraph.elements
-        .filter(el => el.textRun && el.textRun.content)
-        .reduce((res, el) => res + el.textRun.content, '')
-    , '')
-    .replace(/\u000b/g, '\n')
+  let chars = getContent(paragraphs)
 
   let curChar = 1
 
@@ -100,6 +104,7 @@ async function printDocTitle(auth) {
       endTag = '//cut'
 
       post = {
+        id: null,
         date: null,
         author: null,
         title: null,
@@ -119,7 +124,12 @@ async function printDocTitle(auth) {
 
         let [_, year, month, day, name] = match
 
+        if (year.length !== 4) year = `20${year}`
+
         name = name.toLowerCase()
+
+        post.date = { year, month, day }
+        post.author = name
 
         postHasMeta = true
         ignoreEmpty = true
@@ -136,9 +146,32 @@ async function printDocTitle(auth) {
     throw new Error('Not defined')
   }
 
+  let lastDateSlug = null
+  let lastId = 0
+
+  posts.reverse().forEach(post => {
+    const rawContent = getContent(post.content)
+
+    let id = 0
+
+    let dateSlug = `${post.date.year}_${post.date.month}_${post.date.day}`
+
+    if (dateSlug === lastDateSlug) {
+      id++
+    } else {
+      id = 0
+    }
+
+    post.id = `${dateSlug}_${id}`
+  })
+
   console.log(require('util').inspect(posts, {colors: true, depth: null}))
 
-  fs.writeFileSync('./posts.json', JSON.stringify(posts))
+  fs.writeFileSync('./posts.json', JSON.stringify(posts, null, 2))
+
+  posts.forEach(post => {
+    fs.writeFileSync(`./posts/${post.id}`, JSON.stringify(post, null, 2))
+  })
 }
 
 async function main() {
