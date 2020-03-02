@@ -31,14 +31,40 @@ async function printDocTitle(auth) {
 
   let posts = []
 
-  for (let i = 0; (paragraphMeta = paragraphs[i]); i++) {
+  let chars = paragraphs.filter(m => m.paragraph && m.paragraph.elements).reduce((res, paragraph) => {
+    res + paragraph.elements.filter(el => el.textRun && el.textRun.content).reduce((res, el) => res + el.textRun.content, '')
+  }, '').replace(/\u000b/, '\n')
+
+  let char = 1
+
+  let line = '';
+  let lineStart = 1
+  let lineEnd = 0
+
+  let lines = []
+
+  for (let i = 0; (char = chars[i]); i++) {
+    char++
+
+    if (char === '\n') {
+      lineEnd = char
+      lines.push({ line, lineStart, lineEnd })
+
+      line = ''
+      lineStart = char
+    } else {
+      line += char
+    }
+  }
+
+  /* for (let i = 0; (paragraphMeta = paragraphs[i]); i++) {
     const paragraph = paragraphMeta.paragraph
 
     if (!paragraph || !paragraph.elements) {
       continue
     }
 
-    const pText = paragraph.elements.filter(element => element.textRun && element.textRun.content).reduce((result, element) => result + element.textRun.content, '').trim().replace(/ /g, '').toLowerCase()
+    // const pText = paragraph.elements.filter(element => element.textRun && element.textRun.content).reduce((result, element) => result + element.textRun.content, '').trim().replace(/ /g, '').toLowerCase()
 
     console.log(require('util').inspect({isPost, postHasMeta, post, endTag, pText, paragraph}, {colors: true, depth: null}))
 
@@ -96,21 +122,12 @@ async function printDocTitle(auth) {
 
       post.content.push(paragraphMeta)
       continue
-
-      /* if (!postHasTitle) {
-
-
-        postHasTitle = true
-        ignoreEmpty = true
-
-        continue
-      } */
     } else {
       continue
     }
 
     throw new Error('Not defined')
-  }
+  } */
 
   console.log(require('util').inspect(posts, {colors: true, depth: null}))
 
