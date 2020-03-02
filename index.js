@@ -20,22 +20,27 @@ async function printDocTitle(auth) {
   const paragraphs = doc.data.body.content
 
   let i = 0
-  let paragraph
+  let paragraphMeta
 
   let isPost = false
+  let postHasMeta = false
   let postHasTitle = false
   let ignoreEmpty = false
   let endTag = null
   let post = null
 
-  for (let i = 0; (paragraph = paragraphs[i]); i++) {
-    console.log(require('util').inspect(paragraph, {colors: true, depth: null}))
+  let posts = []
 
-    if (!paragraph.elements) {
+  for (let i = 0; (paragraphMeta = paragraphs[i]); i++) {
+    const paragraph = paragraphMeta.paragraph
+
+    if (!paragraph || !paragraph.elements) {
       continue
     }
 
-    const pText = paragraph.elements.reduce((element, result) => result + element.textRun.content, '').trim().replace(/ /g, '').toLowerCase()
+    const pText = paragraph.elements.filter(element => element.textRun && element.textRun.content).reduce((result, element) => result + element.textRun.content, '').trim().replace(/ /g, '').toLowerCase()
+
+    console.log(require('util').inspect({isPost, postHasMeta, post, endTag, pText, paragraph}, {colors: true, depth: null}))
 
     if (ignoreEmpty) {
       if (pText) {
@@ -45,26 +50,70 @@ async function printDocTitle(auth) {
       }
     }
 
-    if (!isPost) {
-      if (pText.startsWith('//cut')) {
-        isPost = true
-        postHasTitle = false
-        endTag = '//cut'
-        post = {}
+    if (pText.startsWith(endTag)) {
+      isPost = false
+      posts.push(post)
+      post = null
+    }
+
+    if (pText.startsWith('//cut')) {
+      isPost = true
+
+      postHasMeta = false
+      postHasTitle = false
+
+      ignoreEmpty = true
+
+      endTag = '//cut'
+
+      post = {
+        date: null,
+        author: null,
+        title: null,
+        content: []
       }
-    } else if (isPost) {
-      if (!postHasTitle) {
-        if (!pText) {
-          continue
+
+      continue
+    }
+
+    if (isPost) {
+      if (!postHasMeta) {
+        const match = pText.match(/^(20[0-9]{2})([0-9]{2})([0-9]{2})_(.+)$/)
+
+        if (!match) {
+          throw new Error(`Invalid meta title at ${paragraph.startIndex}`)
         }
 
-        let [_, year, month, day, name] = pText.match(/^(20[0-9]{2})([0-9]{2})([0-9]{2})_(.+)/)
+        let [_, year, month, day, name] = match
 
         name = name.toLowerCase()
+
+        postHasMeta = true
+        ignoreEmpty = true
+
+        continue
       }
 
-    } 
+      post.content.push(paragraphMeta)
+      continue
+
+      /* if (!postHasTitle) {
+
+
+        postHasTitle = true
+        ignoreEmpty = true
+
+        continue
+      } */
+    } else {
+      continue
+    }
+
+    throw new Error('Not defined')
   }
+
+  console.log(require('util').inspect(posts, {colors: true, depth: null}))
+
 }
 
 async function main() {
