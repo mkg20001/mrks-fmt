@@ -9,7 +9,28 @@ const isOverlappingRange = ({ startIndex, endIndex }, rangeStart, rangeEnd) => {
 }
 
 function dimensionalScissors (paragraphs, rangeStart, rangeEnd) {
-  const matchingParagraphs = paragraphs.filter(p => {
+  const matchingParagraphs = paragraphs.filter(p => isOverlappingRange(p, rangeStart, rangeEnd))
+  
+  return matchingParagraphs.filter(p => p.paragraph && p.paragraph.elements).map(({paragraph}) => {
+  	paragraph = Object.assign({}, paragraph)
+
+  	paragraph.elements.filter(el => isOverlappingRange(el, rangeStart, rangeEnd)).map(el => {
+  		el = Object.assign({}, el)
+  		el.textRun = Object.assign({}, el.textRun)
+
+  		if (!el.textRun || !el.textRun.content) return el
+  		if (el.endIndex > rangeEnd) { // end at actual rangeEnd
+	  		el.textRun.content = el.textRun.content.substr(0, el.textRun.content.length - (el.endIndex - rangeEnd))
+  		}
+
+  		if (el.startIndex < rangeStart) { // start at actual rangeStart
+  			el.textRun.content = el.textRun.content.substr(rangeStart - el.startIndex)
+  		}
+
+  		return el
+  	})
+
+  	return paragraph
   })
 }
 
@@ -27,3 +48,5 @@ t(50, 80, true)
 t(60, 80, true)
 t(50, 70, true)
 t(60, 70, true)
+
+module.exports = dimensionalScissors

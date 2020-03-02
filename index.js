@@ -1,6 +1,7 @@
 'use strict'
 
 const Auth = require('./auth')
+const fs = require('fs')
 
 const { google } = require('googleapis')
 
@@ -17,7 +18,7 @@ async function printDocTitle(auth) {
 
   console.log(doc.data.title)
 
-  console.log(require('util').inspect(doc, {colors: true, depth: null}))
+  // console.log(require('util').inspect(doc, {colors: true, depth: null}))
 
   const paragraphs = doc.data.body.content
 
@@ -33,11 +34,16 @@ async function printDocTitle(auth) {
 
   let posts = []
 
-  let chars = paragraphs.filter(m => m.paragraph && m.paragraph.elements).reduce((res, paragraph) => {
-    res + paragraph.elements.filter(el => el.textRun && el.textRun.content).reduce((res, el) => res + el.textRun.content, '')
-  }, '').replace(/\u000b/, '\n')
+  let chars = paragraphs
+    .filter(m => m.paragraph && m.paragraph.elements)
+    .reduce((res, m) =>
+      res + m.paragraph.elements
+        .filter(el => el.textRun && el.textRun.content)
+        .reduce((res, el) => res + el.textRun.content, '')
+    , '')
+    .replace(/\u000b/g, '\n')
 
-  let char = 1
+  let curChar = 1
 
   let content = ''
   let lineStart = 1
@@ -45,25 +51,29 @@ async function printDocTitle(auth) {
 
   let lines = []
 
+  let char
+
   for (let i = 0; (char = chars[i]); i++) {
-    char++
+    curChar++
 
     if (char === '\n') {
-      lineEnd = char
-      lines.push({ content, lineStart, lineEnd })
+      lineEnd = curChar
+      lines.push({ content, start: lineStart, end: lineEnd })
 
       content = ''
-      lineStart = char
+      lineStart = curChar
     } else {
-      line += char
+      content += char
     }
   }
 
   let line
   for (let i = 0; (line = lines[i]); i++) {
-    const text = line.text.trim().replace(/ /g, '').toLowerCase()
+    const text = line.content.trim().replace(/ /g, '').toLowerCase()
 
-    console.log(require('util').inspect({isPost, postHasMeta, post, endTag, text, paragraph}, {colors: true, depth: null}))
+    console.log(line)
+
+    // console.log(require('util').inspect({isPost, postHasMeta, post, endTag, text, line}, {colors: true, depth: null}))
 
     if (ignoreEmpty) {
       if (text) {
@@ -101,10 +111,10 @@ async function printDocTitle(auth) {
 
     if (isPost) {
       if (!postHasMeta) {
-        const match = text.match(/^(20[0-9]{2})([0-9]{2})([0-9]{2})_(.+)$/)
+        const match = text.match(/^((20)?[0-9]{2})([0-9]{2})([0-9]{2})_(.+)$/)
 
         if (!match) {
-          throw new Error(`Invalid meta title at ${paragraph.startIndex}`)
+          throw new Error(`Invalid meta title at ${line.start}`)
         }
 
         let [_, year, month, day, name] = match
@@ -128,6 +138,7 @@ async function printDocTitle(auth) {
 
   console.log(require('util').inspect(posts, {colors: true, depth: null}))
 
+  fs.writeFileSync('./posts.json', JSON.stringify(posts))
 }
 
 async function main() {
