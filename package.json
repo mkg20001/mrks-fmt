@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "googleapis": "^47.0.0",
+    "mkgs-tool": "^0.1.6"
+  },
+  "template": {
+    "extends": [
+      "node"
+    ]
+  },
+  "scripts": {
+    "test": "mocha -A",
+    "cov": "nyc mocha"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "nyc": "*"
+  }
+}

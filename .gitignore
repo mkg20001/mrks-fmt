@@ -1,0 +1,12 @@
+
+# custom
+
+credentials.json
+token.json
+
+# node
+
+node_modules
+yarn-error.log
+package-lock.json
+yarn.lock
