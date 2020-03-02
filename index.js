@@ -8,6 +8,8 @@ const prom = (f) => new Promise((resolve, reject) => f((err, res) => err ? rejec
 
 const MRKS_LOG = "1uo11f5AARy5bIthEGgwIlaVfkB6mSxrlj-S1A9DrHNA"
 
+const dimensionalScissors = require('./scissors')
+
 async function printDocTitle(auth) {
   const docs = google.docs({version: 'v1', auth})
 
@@ -37,7 +39,7 @@ async function printDocTitle(auth) {
 
   let char = 1
 
-  let line = '';
+  let content = ''
   let lineStart = 1
   let lineEnd = 0
 
@@ -48,41 +50,36 @@ async function printDocTitle(auth) {
 
     if (char === '\n') {
       lineEnd = char
-      lines.push({ line, lineStart, lineEnd })
+      lines.push({ content, lineStart, lineEnd })
 
-      line = ''
+      content = ''
       lineStart = char
     } else {
       line += char
     }
   }
 
-  /* for (let i = 0; (paragraphMeta = paragraphs[i]); i++) {
-    const paragraph = paragraphMeta.paragraph
+  let line
+  for (let i = 0; (line = lines[i]); i++) {
+    const text = line.text.trim().replace(/ /g, '').toLowerCase()
 
-    if (!paragraph || !paragraph.elements) {
-      continue
-    }
-
-    // const pText = paragraph.elements.filter(element => element.textRun && element.textRun.content).reduce((result, element) => result + element.textRun.content, '').trim().replace(/ /g, '').toLowerCase()
-
-    console.log(require('util').inspect({isPost, postHasMeta, post, endTag, pText, paragraph}, {colors: true, depth: null}))
+    console.log(require('util').inspect({isPost, postHasMeta, post, endTag, text, paragraph}, {colors: true, depth: null}))
 
     if (ignoreEmpty) {
-      if (pText) {
+      if (text) {
         ignoreEmpty = false
       } else {
         continue
       }
     }
 
-    if (pText.startsWith(endTag)) {
+    if (text.startsWith(endTag)) {
       isPost = false
       posts.push(post)
       post = null
     }
 
-    if (pText.startsWith('//cut')) {
+    if (text.startsWith('//cut')) {
       isPost = true
 
       postHasMeta = false
@@ -104,7 +101,7 @@ async function printDocTitle(auth) {
 
     if (isPost) {
       if (!postHasMeta) {
-        const match = pText.match(/^(20[0-9]{2})([0-9]{2})([0-9]{2})_(.+)$/)
+        const match = text.match(/^(20[0-9]{2})([0-9]{2})([0-9]{2})_(.+)$/)
 
         if (!match) {
           throw new Error(`Invalid meta title at ${paragraph.startIndex}`)
@@ -120,14 +117,14 @@ async function printDocTitle(auth) {
         continue
       }
 
-      post.content.push(paragraphMeta)
+      post.content.push(dimensionalScissors(paragraphs, line.start, line.end))
       continue
     } else {
       continue
     }
 
     throw new Error('Not defined')
-  } */
+  }
 
   console.log(require('util').inspect(posts, {colors: true, depth: null}))
 
