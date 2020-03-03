@@ -7,33 +7,24 @@ const { google } = require('googleapis')
 
 const prom = (f) => new Promise((resolve, reject) => f((err, res) => err ? reject(err) : resolve(res)))
 
-const MRKS_LOG = "1uo11f5AARy5bIthEGgwIlaVfkB6mSxrlj-S1A9DrHNA"
+const MRKS_LOG = '1uo11f5AARy5bIthEGgwIlaVfkB6mSxrlj-S1A9DrHNA'
 
 const dimensionalScissors = require('./scissors')
+const { getContent } = require('./utils')
 
-function getContent (paragraphs) {
-  return paragraphs
-    .filter(m => m.paragraph && m.paragraph.elements)
-    .reduce((res, m) =>
-      res + m.paragraph.elements
-        .filter(el => el.textRun && el.textRun.content)
-        .reduce((res, el) => res + el.textRun.content, '')
-    , '')
-    .replace(/\u000b/g, '\n')
-}
-
-async function printDocTitle(auth) {
-  const docs = google.docs({version: 'v1', auth})
+async function processDoc (auth) {
+  const docs = google.docs({ version: 'v1', auth })
 
   const doc = await prom(cb => docs.documents.get({ documentId: MRKS_LOG }, cb))
 
   console.log(doc.data.title)
 
-  // console.log(require('util').inspect(doc, {colors: true, depth: null}))
+  console.log(require('util').inspect(doc, {colors: true, depth: null}))
+  fs.writeFileSync('./docs.json', JSON.stringify(doc))  
 
   const paragraphs = doc.data.body.content
 
-  let i = 0
+  const i = 0
   let paragraphMeta
 
   let isPost = false
@@ -43,9 +34,9 @@ async function printDocTitle(auth) {
   let endTag = null
   let post = null
 
-  let posts = []
+  const posts = []
 
-  let chars = getContent(paragraphs)
+  const chars = getContent(paragraphs)
 
   let curChar = 1
 
@@ -53,7 +44,7 @@ async function printDocTitle(auth) {
   let lineStart = 1
   let lineEnd = 0
 
-  let lines = []
+  const lines = []
 
   let char
 
@@ -75,7 +66,7 @@ async function printDocTitle(auth) {
   for (let i = 0; (line = lines[i]); i++) {
     const text = line.content.trim().replace(/ /g, '').toLowerCase()
 
-    console.log(line)
+    // console.log(line)
 
     // console.log(require('util').inspect({isPost, postHasMeta, post, endTag, text, line}, {colors: true, depth: null}))
 
@@ -122,7 +113,7 @@ async function printDocTitle(auth) {
           throw new Error(`Invalid meta title at ${line.start}`)
         }
 
-        let [_, year, month, day, name] = match
+        let [_, year, __, month, day, name] = match
 
         if (year.length !== 4) year = `20${year}`
 
@@ -137,6 +128,7 @@ async function printDocTitle(auth) {
         continue
       }
 
+      // TODO: should we split up things so hard?
       post.content.push(dimensionalScissors(paragraphs, line.start, line.end))
       continue
     } else {
@@ -150,34 +142,43 @@ async function printDocTitle(auth) {
   let lastId = 0
 
   posts.reverse().forEach(post => {
+    // generate html
+
+
+
+    // ...
+
     const rawContent = getContent(post.content)
 
-    let id = 0
+    // id
 
-    let dateSlug = `${post.date.year}_${post.date.month}_${post.date.day}`
+    const dateSlug = `${post.date.year}_${post.date.month}_${post.date.day}`
 
     if (dateSlug === lastDateSlug) {
-      id++
+      lastId++
     } else {
-      id = 0
+      lastId = 0
+      lastDateSlug = dateSlug
     }
 
-    post.id = `${dateSlug}_${id}`
+    post.id = `${dateSlug}_${lastId}`
   })
 
-  console.log(require('util').inspect(posts, {colors: true, depth: null}))
+  // console.log(require('util').inspect(posts, { colors: true, depth: null }))
 
   fs.writeFileSync('./posts.json', JSON.stringify(posts, null, 2))
 
   posts.forEach(post => {
     fs.writeFileSync(`./posts/${post.id}`, JSON.stringify(post, null, 2))
   })
+
+  // console.log(lines)
 }
 
-async function main() {
+async function main () {
   const auth = await Auth.getAuth(require('./credentials.json'))
 
-  await printDocTitle(auth)
+  await processDoc(auth)
 }
 
 main().then(console.log, console.error)
