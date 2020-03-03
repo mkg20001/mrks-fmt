@@ -111,7 +111,7 @@ function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
               styles['font-weight'] = 'bold' // TODO: does this break the weight set by docs?
             }
 
-            t.attr('css', styleToStr(styles))
+            t.attr('style', styleToStr(styles))
           }
 
           return t
@@ -134,7 +134,7 @@ function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
 
         }
 
-        t.attr('css', styleToStr(pStyles))
+        t.attr('style', styleToStr(pStyles))
       }
 
     }
