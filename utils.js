@@ -34,37 +34,37 @@ function getContent (paragraphs) {
 // TODO: escaping
 
 function El (tag) {
-  let content = []
-
-  const self = {
+  const _el = {
     tag,
     attrs: {},
-    content
+    content: []
   }
 
   return {
     el (tag) {
       const el = El(tag)
-      content.push(el)
+      _el.content.push(el)
 
       return el
     },
     attr (k, v) {
-      self.attrs[k] = v
+      _el.attrs[k] = v
     },
-    push: content.push.bind(content),
+    push (...a)  {
+      _el.content.push(...a)
+    },
     concat (...a) {
-      self.content = content = content.concat(...a)
+      _el.content = _el.content.concat(...a)
     },
     toString () {
       // TODO: escape attrs
-      const attrs = Object.keys(self.attrs).map(attr => `${attr}="${attrs[attr]}"`).join(' ')
-      const rawContent = self.content.map(String)
-      const out = `<${self.tag} ${attrs}>${rawContent}</${self.tag}>`
+      const attrs = Object.keys(_el.attrs).map(attr => `${attr}="${_el.attrs[attr]}"`).join(' ')
+      const rawContent = _el.content.map(String).join('')
+      const out = `<${_el.tag} ${attrs}>${rawContent}</${_el.tag}>`
 
       return out
     },
-    self
+    _el
   }
 }
 
@@ -111,11 +111,11 @@ function docs2html (paragraphs, { escapeHTML = true, applyFont = true } = {}) {
               styles['font-weight'] = 'bold' // TODO: does this break the weight set by docs?
             }
 
-            t.attrs('css', styleToStr(styles))
+            t.attr('css', styleToStr(styles))
           }
 
           return t
-        })).filter(Boolean)
+        }).filter(Boolean))
       }
 
       if (m.paragraph.paragraphStyle) {
@@ -134,9 +134,12 @@ function docs2html (paragraphs, { escapeHTML = true, applyFont = true } = {}) {
 
         }
 
-        t.attrs('css', styleToStr(pStyles))
+        t.attr('css', styleToStr(pStyles))
       }
+
     }
+
+    return t
   }))
 
   return String(t)

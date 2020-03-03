@@ -11,8 +11,8 @@ const isOverlappingRange = ({ startIndex, endIndex }, rangeStart, rangeEnd) => {
 function dimensionalScissors (paragraphs, rangeStart, rangeEnd) {
   const matchingParagraphs = paragraphs.filter(p => isOverlappingRange(p, rangeStart, rangeEnd))
   
-  return matchingParagraphs.filter(p => p.paragraph && p.paragraph.elements).map(({paragraph}) => {
-  	paragraph = Object.assign({}, paragraph)
+  return matchingParagraphs.filter(p => p.paragraph && p.paragraph.elements).map((p) => {
+  	let paragraph = p.paragraph = Object.assign({}, p.paragraph)
 
   	paragraph.elements.filter(el => isOverlappingRange(el, rangeStart, rangeEnd)).map(el => {
   		el = Object.assign({}, el)
@@ -30,7 +30,7 @@ function dimensionalScissors (paragraphs, rangeStart, rangeEnd) {
   		return el
   	})
 
-  	return paragraph
+  	return p
   })
 }
 

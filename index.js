@@ -8,9 +8,10 @@ const { google } = require('googleapis')
 const prom = (f) => new Promise((resolve, reject) => f((err, res) => err ? reject(err) : resolve(res)))
 
 const MRKS_LOG = '1uo11f5AARy5bIthEGgwIlaVfkB6mSxrlj-S1A9DrHNA'
+const yaml = require('js-yaml')
 
 const dimensionalScissors = require('./scissors')
-const { getContent } = require('./utils')
+const { getContent, docs2html } = require('./utils')
 
 async function processDoc (auth) {
   const docs = google.docs({ version: 'v1', auth })
@@ -129,7 +130,7 @@ async function processDoc (auth) {
       }
 
       // TODO: should we split up things so hard?
-      post.content.push(dimensionalScissors(paragraphs, line.start, line.end))
+      post.content = post.content.concat(dimensionalScissors(paragraphs, line.start, line.end))
       continue
     } else {
       continue
@@ -144,7 +145,19 @@ async function processDoc (auth) {
   posts.reverse().forEach(post => {
     // generate html
 
+    post.html = docs2html(post.content)
 
+    // generate meta
+
+    post.jekyllMeta = {}
+
+    if (post.author) {
+      post.jekyllMeta.author = post.author
+    }
+
+    if (post.title) {
+      post.jekyllMeta.title = post.title
+    }
 
     // ...
 
@@ -152,7 +165,7 @@ async function processDoc (auth) {
 
     // id
 
-    const dateSlug = `${post.date.year}_${post.date.month}_${post.date.day}`
+    const dateSlug = `${post.date.year}-${post.date.month}-${post.date.day}`
 
     if (dateSlug === lastDateSlug) {
       lastId++
@@ -161,7 +174,7 @@ async function processDoc (auth) {
       lastDateSlug = dateSlug
     }
 
-    post.id = `${dateSlug}_${lastId}`
+    post.id = `${dateSlug}-${lastId}`
   })
 
   // console.log(require('util').inspect(posts, { colors: true, depth: null }))
@@ -170,6 +183,18 @@ async function processDoc (auth) {
 
   posts.forEach(post => {
     fs.writeFileSync(`./posts/${post.id}`, JSON.stringify(post, null, 2))
+  })
+
+  posts.forEach(post => {
+    let out = [
+      '---',
+      yaml.safeDump(post.jekyllMeta),
+      '---',
+      post.html,
+      ''
+    ]
+
+    fs.writeFileSync(`./_posts/${post.id}.html`, out.join('\n'))
   })
 
   // console.log(lines)

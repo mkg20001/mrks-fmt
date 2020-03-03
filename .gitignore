@@ -6,6 +6,7 @@ token.json
 posts.json
 posts/**
 doc*
+_posts
 
 # node
 
