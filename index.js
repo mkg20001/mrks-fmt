@@ -2,12 +2,18 @@
 
 const Auth = require('./auth')
 const fs = require('fs')
+const path = require('path')
 
 const { google } = require('googleapis')
 
 const prom = (f) => new Promise((resolve, reject) => f((err, res) => err ? reject(err) : resolve(res)))
 
 const MRKS_LOG = '1uo11f5AARy5bIthEGgwIlaVfkB6mSxrlj-S1A9DrHNA'
+const OUT = path.join(__dirname, 'blog', '_posts')
+
+const rimraf = require('rimraf').sync
+const mkdirp = require('mkdirp').sync
+
 const yaml = require('js-yaml')
 
 const dimensionalScissors = require('./scissors')
@@ -145,11 +151,16 @@ async function processDoc (auth) {
   posts.reverse().forEach(post => {
     // generate html
 
-    post.html = docs2html(post.content)
+    post.html = docs2html(post.content, {
+      escape: false,
+      applyFont: false
+    })
 
     // generate meta
 
-    post.jekyllMeta = {}
+    post.jekyllMeta = {
+      layout: 'post'
+    }
 
     if (post.author) {
       post.jekyllMeta.author = post.author
@@ -179,11 +190,8 @@ async function processDoc (auth) {
 
   // console.log(require('util').inspect(posts, { colors: true, depth: null }))
 
-  fs.writeFileSync('./posts.json', JSON.stringify(posts, null, 2))
-
-  posts.forEach(post => {
-    fs.writeFileSync(`./posts/${post.id}`, JSON.stringify(post, null, 2))
-  })
+  rimraf(OUT)
+  mkdirp(OUT)
 
   posts.forEach(post => {
     let out = [
@@ -194,10 +202,8 @@ async function processDoc (auth) {
       ''
     ]
 
-    fs.writeFileSync(`./_posts/${post.id}.html`, out.join('\n'))
+    fs.writeFileSync(path.join(OUT, `${post.id}.html`), out.join('\n'))
   })
-
-  // console.log(lines)
 }
 
 async function main () {

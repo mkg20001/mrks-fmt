@@ -72,7 +72,7 @@ function styleToStr (style) {
   return Object.keys(style).filter(key => `${key}: ${style[key]};`).join(' ')
 }
 
-function docs2html (paragraphs, { escapeHTML = true, applyFont = true } = {}) {
+function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
   const t = El('div')
 
   t.concat(paragraphs.map(m => {
@@ -97,7 +97,7 @@ function docs2html (paragraphs, { escapeHTML = true, applyFont = true } = {}) {
           if (el.textRun) {
             t = El('span')
 
-            t.push(replaceNewLineChars(escapeHTML ? escape(el.textRun.content) : el.textRun.content, '<br>'))
+            t.push(replaceNewLineChars(escape ? escapeHTML(el.textRun.content) : el.textRun.content, '<br>'))
 
             const styles = {}
             const style = el.textRun.textStyle
