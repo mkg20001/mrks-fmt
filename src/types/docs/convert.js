@@ -2,8 +2,11 @@
 
 const {
   El,
-  styleToStr
+  styleToStr,
+  replaceNewLineChars
 } = require('../../utils')
+
+const escapeHTML = (d) => d // TODO: add
 
 function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
   const t = El('div')

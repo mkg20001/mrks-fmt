@@ -4,11 +4,6 @@ const prom = (f) => new Promise((resolve, reject) => f((err, res) => err ? rejec
 
 const dimensionalScissors = require('./scissors')
 
-const {
-  docs2md,
-  docs2html
-} = require('./convert')
-
 const { getAuth } = require('./auth')
 
 const { google } = require('googleapis')
@@ -19,7 +14,7 @@ module.exports = async ({ credentials }) => {
 	  const docs = google.docs({ version: 'v1', auth })
 
   return {
-    async fetch (docId) {
+    fetch (docId) {
 		  	return prom(cb => docs.documents.get({ documentId: docId }, cb))
     },
 
