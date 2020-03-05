@@ -1,5 +1,5 @@
 'use strict'
 
 module.exports = {
-	docs: require('./docs')
+  docs: require('./docs')
 }

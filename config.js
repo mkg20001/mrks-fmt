@@ -3,13 +3,13 @@
 const path = require('path')
 
 module.exports = {
-	source: {
-		credentials: require('./credentials.json')
-	},
-	parser: {
+  source: {
+    credentials: require('./credentials.json')
+  },
+  parser: {
 
-	},
-	processor: {
-		outputPosts: path.join(__dirname, 'blog', '_posts')
-	}
+  },
+  processor: {
+    outputPosts: path.join(__dirname, 'blog', '_posts')
+  }
 }

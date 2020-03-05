@@ -64,7 +64,7 @@ function getNewToken (oAuth2Client, callback) {
 }
 
 module.exports = {
-	getAuth: (credentials) => {
-		return prom(cb => authorize(credentials, cb))
-	}
+  getAuth: (credentials) => {
+    return prom(cb => authorize(credentials, cb))
+  }
 }

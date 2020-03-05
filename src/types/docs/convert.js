@@ -1,8 +1,8 @@
 'use strict'
 
 const {
-	El,
-	styleToStr
+  El,
+  styleToStr
 } = require('../../utils')
 
 function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
@@ -69,7 +69,6 @@ function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
 
         t.attr('style', styleToStr(pStyles))
       }
-
     }
 
     return t
@@ -79,5 +78,5 @@ function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
 }
 
 module.exports = {
-	docs2html
+  docs2html
 }

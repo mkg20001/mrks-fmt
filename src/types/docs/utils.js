@@ -42,6 +42,6 @@ function getLines (paragraphs) {
 }
 
 module.exports = {
-	getContent,
-	getLines
+  getContent,
+  getLines
 }

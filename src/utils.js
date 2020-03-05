@@ -39,7 +39,7 @@ function El (tag) {
     attr (k, v) {
       _el.attrs[k] = v
     },
-    push (...a)  {
+    push (...a) {
       _el.content.push(...a)
     },
     concat (...a) {
@@ -62,7 +62,7 @@ function styleToStr (style) {
 }
 
 module.exports = {
-	replaceNewLineChars,
+  replaceNewLineChars,
   El,
   styleToStr
 }
