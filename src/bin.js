@@ -24,3 +24,5 @@ async function main (configPath, srcType, src, parserPath, processorPath) {
 
   await processor(parsed)
 }
+
+main(...process.argv.slice(2)).then(console.log, console.error)
