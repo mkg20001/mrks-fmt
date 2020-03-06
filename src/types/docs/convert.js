@@ -33,10 +33,12 @@ function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
           if (el.textRun) {
             t = El('span')
 
-            t.push(replaceNewLineChars(escape ? escapeHTML(el.textRun.content) : el.textRun.content, '<br>'))
+            if (el.textRun.content) {
+              t.push(replaceNewLineChars(escape ? escapeHTML(el.textRun.content) : el.textRun.content, '<br>'))
+            }
 
             const styles = {}
-            const style = el.textRun.textStyle
+            const style = el.textRun.textStyle || {}
 
             if (style.weightedFontFamily && applyFont) {
               styles['font-family'] = style.weightedFontFamily.fontFamily
