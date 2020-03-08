@@ -45,8 +45,17 @@ function docs2html (paragraphs, { escape = true, applyFont = true } = {}) {
               styles['font-weight'] = style.weightedFontFamily.weight
             }
 
+            if (style.fontSize && applyFont) {
+              styles['font-size'] = `${style.fontSize.magnitude}${style.fontSize.unit.toLowerCase()}`
+            }
+
             if (style.bold) {
               styles['font-weight'] = 'bold' // TODO: does this break the weight set by docs?
+            }
+
+            if (style.link) {
+              t._el.tag = 'a'
+              t.attr('href', style.link.url)
             }
 
             t.attr('style', styleToStr(styles))

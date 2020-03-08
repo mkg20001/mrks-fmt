@@ -10,6 +10,6 @@ module.exports = {
 
   },
   processor: {
-    output: path.join(__dirname, 'blog', '_posts')
+    output: path.join(__dirname, 'blog')
   }
 }
