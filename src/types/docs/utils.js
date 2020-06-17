@@ -1,13 +1,52 @@
 'use strict'
 
-function getContent (paragraphs) {
-  return paragraphs
-    .filter(m => m.paragraph && m.paragraph.elements)
-    .reduce((res, m) =>
-      res + m.paragraph.elements
-        .filter(el => el.textRun && el.textRun.content)
-        .reduce((res, el) => res + el.textRun.content, '')
-    , '')
+const n = Buffer.from('00', 'hex').toString('utf8')
+
+function IDXM () { // InDeX correction Machine
+  let cur = 0
+
+  return {
+    start: i => {
+      const out = n.repeat(i - cur)
+      cur = i
+      return out
+    },
+    end: i => {
+      if (i < cur) throw new Error('IDXM: backwards')
+      cur = i
+    }
+  }
+}
+
+function readStructuralElements (elements, idx) {
+  let text = ''
+
+  elements.forEach(element => {
+    if (element.paragraph) {
+      element.paragraph.elements.forEach(el => {
+        if (el.textRun) {
+          text += idx.start(el.startIndex)
+          text += el.textRun.content
+          idx.end(el.endIndex)
+        }
+      })
+    } else if (element.table) {
+      element.table.tableRows.forEach(row => {
+        row.tableCells.forEach(cell => {
+          text += readStructuralElements(cell.content, idx)
+        })
+      })
+    } else if (element.tableOfContents) {
+      text += readStructuralElements(element.tableOfContents.content, idx)
+    }
+  })
+
+  return text
+}
+
+function getContent (el) {
+  return readStructuralElements(el, IDXM())
+    .replace(/\u0000/gmi, '\n')
     .replace(/\u000b/gmi, '\n')
 }
 
